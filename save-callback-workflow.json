@@ -1,0 +1,188 @@
+{
+  "name": "save_callback",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "name"
+            },
+            {
+              "name": "phone"
+            },
+            {
+              "name": "suburb"
+            },
+            {
+              "name": "job_description"
+            },
+            {
+              "name": "travel_fee_note"
+            }
+          ]
+        }
+      },
+      "id": "165151cc-8f04-4af4-b9bb-e2258f64e014",
+      "name": "When Called By Agent",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_CALLBACKS_TABLE_ID",
+          "cachedResultName": "Bayline Callbacks"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.name }}",
+            "phone": "={{ $json.phone }}",
+            "suburb": "={{ $json.suburb }}",
+            "job_description": "={{ $json.job_description }}",
+            "travel_fee_note": "={{ $json.travel_fee_note || \"\" }}",
+            "requested_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "suburb",
+              "displayName": "suburb",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_description",
+              "displayName": "job_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "travel_fee_note",
+              "displayName": "travel_fee_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "requested_at",
+              "displayName": "requested_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5ebd314a-7e9d-4f40-a847-10465610dcf4",
+      "name": "Save Callback Request",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s",
+              "name": "success",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "n",
+              "name": "name",
+              "type": "string",
+              "value": "={{ $('When Called By Agent').item.json.name }}"
+            },
+            {
+              "id": "p",
+              "name": "phone",
+              "type": "string",
+              "value": "={{ $('When Called By Agent').item.json.phone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "befbdb34-9e19-49eb-9b18-e39f639aff3f",
+      "name": "Confirm Saved",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "When Called By Agent": {
+      "main": [
+        [
+          {
+            "node": "Save Callback Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Callback Request": {
+      "main": [
+        [
+          {
+            "node": "Confirm Saved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

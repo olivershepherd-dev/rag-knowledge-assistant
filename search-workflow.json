@@ -1,0 +1,89 @@
+{
+  "name": "Bayline - Search Knowledge Base",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "id": "d57ba4f1-6873-4900-b75a-26a0373e7c40",
+      "name": "When Called By Agent",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_KNOWLEDGE_BASE_TABLE_ID",
+          "cachedResultName": "Bayline Knowledge Base"
+        },
+        "returnAll": true
+      },
+      "id": "eae048b0-d0ed-448b-b8c0-b2f0967b429e",
+      "name": "Get Knowledge Base Rows",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const query = String($('When Called By Agent').first().json.query || '').toLowerCase();\nconst stop = new Set(['the','a','an','and','or','of','to','for','in','on','do','you','your','is','are','what','how','much','i','my','can','we','it','me','with','at','does']);\nconst words = query.split(/[^a-z0-9]+/).filter(w => w.length > 1 && !stop.has(w));\nconst rows = $input.all().map(i => i.json).filter(r => r && (r.content || r.document_name));\nconst scored = rows.map(r => {\n  const hay = [r.document_name, r.topic, r.content].join(' ').toLowerCase();\n  const score = words.reduce((s, w) => s + (hay.includes(w) ? 1 : 0), 0);\n  return { document_name: r.document_name, topic: r.topic, content: r.content, score };\n}).filter(r => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);\nif (scored.length === 0) {\n  return [{ json: { results: [], message: 'No results found in the knowledge base for this query.' } }];\n}\nreturn [{ json: { results: scored.map(({ score, ...rest }) => rest), message: scored.length + ' matching document(s) found.' } }];"
+      },
+      "id": "74b0b12f-e8e1-4cb7-96ee-a0d3916094e7",
+      "name": "Match Documents",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "When Called By Agent": {
+      "main": [
+        [
+          {
+            "node": "Get Knowledge Base Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Knowledge Base Rows": {
+      "main": [
+        [
+          {
+            "node": "Match Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

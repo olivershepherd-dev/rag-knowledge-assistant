@@ -1,0 +1,112 @@
+{
+  "name": "Bayline - Retrieve Knowledge Base",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "id": "d162be8a-7a75-4789-956d-824672d8bcd0",
+      "name": "When Called By Agent",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "id",
+          "value": "bayline_kb"
+        },
+        "prompt": "={{ $json.query }}"
+      },
+      "id": "27862295-5f35-4f78-8bed-a3b87b8a50b7",
+      "name": "Search bayline_kb",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        112
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "9f5f906c-d718-4b37-8df7-c94a5ff42581",
+      "name": "OpenAI Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.all()\n  .map(i => i.json)\n  .filter(j => j && j.document)\n  .map(j => ({\n    source: (j.document.metadata && j.document.metadata.source) || 'Unknown document',\n    content: j.document.pageContent,\n    score: j.score,\n  }));\nif (results.length === 0) {\n  return [{ json: { results: [], message: 'No results found in the knowledge base.' } }];\n}\nreturn [{ json: { results, message: results.length + ' matching chunk(s) found.' } }];"
+      },
+      "id": "bb22cd21-25b3-41ff-8a09-545e368fb0da",
+      "name": "Format Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        112
+      ]
+    }
+  ],
+  "connections": {
+    "When Called By Agent": {
+      "main": [
+        [
+          {
+            "node": "Search bayline_kb",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search bayline_kb": {
+      "main": [
+        [
+          {
+            "node": "Format Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search bayline_kb",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
